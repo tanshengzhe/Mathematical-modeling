@@ -1,0 +1,1 @@
+x=fminunc(@fun3_3,rand(6,1))
