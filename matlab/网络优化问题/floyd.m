@@ -1,5 +1,6 @@
-function [ dist,l ] = floyd( a,sb,db ) %a为邻接矩阵，sb为起点序号，db为重点序号。输出距离dist，路线l
+function [ dist,p ] = floyd( a,sb,db ) %a为邻接矩阵，sb为起点序号，db为重点序号。输出距离dist，路线l
 n=size(a,1);
+ay=a;
 path=zeros(n);
 for k=1:n
     for i=1:n
@@ -12,19 +13,19 @@ for k=1:n
     end
 end
     dist=a(sb,db);
-    p=path(sb,db);
-    l=0;
-    while p~=0
-        l=[l,p];
-        p=path(sb,p);
+    p=db;
+    k=db;
+    while k~=sb
+        for n=sb+1:(k-1)
+            if ay(n,k)==a(sb,k)-a(sb,n)
+                p=[n,p]
+                k=n;
+            end
+        end
     end
-    if l==0
-        l="null";
-    else
-        l(1)=[];
-    end
+    p=[sb,p];
     
-%   是用floyd算法输出最短距离
+%   是用floyd算法输出最短距离,可完美输出路程。
 
 
 
