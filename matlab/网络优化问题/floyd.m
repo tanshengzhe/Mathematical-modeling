@@ -17,13 +17,13 @@ end
     k=db;
     while k~=sb
         for n=sb+1:(k-1)
-            if ay(n,k)==a(sb,k)-a(sb,n)
+            if ay(n,k)==a(sb,k)-a(sb,n)%使用“最短路程”之差等于权重找出前置点
                 p=[n,p]
                 k=n;
             end
         end
     end
-    p=[sb,p];
+    p=[sb,p];%将起点写入
     
 %   是用floyd算法输出最短距离,可完美输出路程。
 
