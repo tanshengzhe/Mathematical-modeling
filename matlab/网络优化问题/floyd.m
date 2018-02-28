@@ -1,4 +1,4 @@
-function [ dist,p ] = floyd( a,sb,db ) %aΪ�ڽӾ���sbΪ�����ţ�dbΪ�ص���š��������dist��·��l
+function [ dist,p ] = floyd( a,sb,db ) %a为邻接矩阵，sb为起点序号，db为重点序号。输出距离dist，路线l.
 n=size(a,1);
 ay=a;
 path=zeros(n);
@@ -17,15 +17,15 @@ end
     k=db;
     while k~=sb
         for n=sb+1:(k-1)
-            if ay(n,k)==a(sb,k)-a(sb,n)%ʹ�á����·�̡�֮�����Ȩ���ҳ�ǰ�õ�
+            if ay(n,k)==a(sb,k)-a(sb,n)%使用“最短路程”之差等于权重找出前置点
                 p=[n,p]
                 k=n;
             end
         end
     end
-    p=[sb,p];%�����д��
+    p=[sb,p];%将起点写入
     
-%   ����floyd�㷨�����̾���,���������·�̡�
+%   是用floyd算法输出最短距离,可完美输出路程。
 
 
 
