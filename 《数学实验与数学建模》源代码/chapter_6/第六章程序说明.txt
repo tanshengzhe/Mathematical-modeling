@@ -1,0 +1,11 @@
+第六章程序说明
+
+1.   ga_main.m为6.1节遗传算法程序。
+2.   shortroad_ant_main.m为6.2节蚁群算法程序。
+3.   greedy_method.m为6.3.1节贪婪算法程序。
+4.   Monituihuo.m为6.3.2节模拟退火算法程序。
+5.   queen_main.m为6.3.3节回溯法程序。
+6.   Main.m为6.3.5节粒子群算法程序,data.txt为粒子群算法的数据文件。
+
+
+

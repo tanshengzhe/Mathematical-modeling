@@ -1,0 +1,319 @@
+function [M,N] = Example8_11
+X=[80 10 6 2;50 1 6 4;90 6 4 6;40 5 7 3;10 1 2 4];
+[M,N]=fuzzy_jlfx(3,5,X);
+end
+%%
+function [M,N]=fuzzy_jlfx(bzh,fa,X)%得到聚类结果
+[X]=F_JlSjBzh(bzh,X);%数据标准化
+[R]=F_JlR(fa,X);%建立相似矩阵
+[A]=fuzzy_cdbb(R);%得到传递闭包矩阵
+[Alamd]=fuzzy_lamdjjz(A);%得到lamdf截矩阵从而得到聚类结果
+[M,N]=F_JlDtjl(R);%动态聚类并画出聚类图
+%%
+function [M,N]=F_JlDtjl(R)
+%clc;
+[A]=fuzzy_cdbb(R);
+U=unique(A);
+L=length(U);
+M=1:L;
+for i=L-1:-1:1
+    [m,n]=find(A==U(i));
+    N{i,1}=n;
+    N{i,2}=m;
+    A(m(1),:)=0;
+    mm=unique(m);
+    N{i,3}=mm;
+    len=length(find(m==mm(1)));
+    depth=length(find(m==mm(2)));
+    index1=find(M==mm(1));
+    MM=[M(1:index1-1),M(index1+depth:L)];  %
+    index2=find(MM==mm(2));
+    M=M(index1:index1+depth-1);
+    M=[MM(1:index2-1),M,MM(index2:end)];
+end
+M=[1:L;M;ones(1,L)];
+h=(max(U)-min(U))/L;
+figure 
+text(L,1,sprintf('%d',M(2,L)));
+text(L+1,1-h,sprintf('%d',L));
+text(0,1,sprintf('%3.2f',1));
+text(0,(1+min(U))/2,sprintf('%3.2f',(1+min(U))/2));
+text(0,min(U),sprintf('%3.2f',min(U)));
+hold on
+for i=L-1:-1:1
+    m=N{i,2};
+    n=N{i,1};
+    mm=N{i,3};
+    k=find(M(2,:)==mm(1));
+    l=find(M(2,:)==mm(2));
+    x1=M(1,k);
+    y1=M(3,k);
+    x2=M(1,l);
+    y2=M(3,l);
+    x=[x1,x1,x2,x2];
+    M(3,[k,l])=U(i);
+    M(1,[k,l])=sum(M(1,[k,l]))/length(M(1,[k,l]));
+    y=[y1,U(i),U(i),y2];
+    plot(x,y);
+    text(i,1,sprintf('%d',M(2,i)));
+    text(M(1,k(1)),U(i)+h*0.1,sprintf('%3.2f',U(i)));
+    text(L+1,1-i*h-h,sprintf('%d',L-i));
+end
+axis([0 L+1 min(U) max(U)])
+axis off
+hold off
+end
+end
+%%
+function[X]=F_JlSjBzh(cs,X)%定义函数
+%模糊聚类分析数据标准化变换: [X]=F_JlSjBzh(cs,X)
+%X,数据矩阵
+%cs=0,不变换;cs=1,标准差变换;cs=2,极差变换;cs=其它,最大值规格化
+if(cs==0)return;end
+[n,m]=size(X);%获得矩阵的行列数
+if(cs==1)%平移?标准差变换
+    for(k=1:m)xk=0;
+		for(i=1:n)xk=xk+X(i,k);end
+		xk=xk/n;sk=0;
+		for(i=1:n)sk=sk+(X(i,k)-xk)^2;end
+		sk=sqrt(sk/n);
+		for(i=1:n)X(i,k)=(X(i,k)-xk)/sk;end
+    end
+elseif(cs==2)%平移?极差变换
+    for(k=1:m)xmin=X(1,k);xmax=X(1,k);
+		for(i=1:n)
+            if(xmin>X(i,k))xmin=X(i,k);end
+            if(xmax<X(i,k))xmax=X(i,k);end
+        end
+		for(i=1:n)X(i,k)=(X(i,k)-xmin)/(xmax-xmin);end
+    end
+else%最大值规格化
+    A=max(X);
+    for(i=1:m)
+        X(:,i)=X(:,i)/A(i);
+    end
+end
+end
+%%
+function[R]=F_JlR(cs,X)%定义函数
+%模糊聚类分析建立模糊相似矩阵: [R]=F_JlR(cs,X)
+%X,数据矩阵
+%cs=1,数量积法
+%cs=2,夹角余弦法
+%cs=3,相关系数法
+%cs=4,指数相似系数法
+%cs=5,最大最小法
+%cs=6,算术平均最小法
+%cs=7,几何平均最小法
+%cs=8,一般欧式距离法
+%cs=9,一般海明距离法
+%cs=10,一般切比雪夫距离法
+%cs=11,倒数欧式距离法
+%cs=12,倒数海明距离法
+%cs=13,倒数切比雪夫距离法
+%cs=14,指数欧式距离法
+%cs=15,指数海明距离法
+%cs=16,指数切比雪夫距离法
+[n,m]=size(X);%获得矩阵的行列数
+R=[];
+if(cs==1)maxM=0;pd=0;%数量积法
+	for(i=1:n)for(j=1:n)if(j~=i)x=0;
+		for(k=1:m)x=x+X(i,k)*X(j,k);end
+		if(maxM<x)maxM=x;end
+    end;end;end
+	if(maxM<0.000001)return;end
+	for(i=1:n)for(j=1:n)
+		if(i==j)R(i,j)=1;
+		else R(i,j)=0;
+			for(k=1:m)R(i,j)=R(i,j)+X(i,k)*X(j,k);end
+			R(i,j)=R(i,j)/maxM;
+			if(R(i,j)<0)pd=1;end
+		end
+    end;end
+	if(pd)for(i=1:n)for(j=1:n)R(i,j)=(R(i,j)+1)/2;end;end;end
+elseif(cs==2)%夹角余弦法
+	for(i=1:n)for(j=1:n)xi=0;xj=0;
+		for(k=1:m)xi=xi+X(i,k)^2;xj=xj+X(j,k)^2;end
+		s=sqrt(xi*xj);R(i,j)=0;
+		for(k=1:m)R(i,j)=R(i,j)+X(i,k)*X(j,k);end
+		R(i,j)=R(i,j)/s;
+    end;end
+elseif(cs==3)%相关系数法
+	for(i=1:n)for(j=1:n)xi=0;xj=0;
+		for(k=1:m)xi=xi+X(i,k);xj=xj+X(j,k);end
+		xi=xi/m;xj=xj/m;xis=0;xjs=0;
+		for(k=1:m)xis=xis+(X(i,k)-xi)^2;xjs=xjs+(X(j,k)-xj)^2;end
+		s=sqrt(xis*xjs);R(i,j)=0;
+		for(k=1:m)R(i,j)=R(i,j)+abs((X(i,k)-xi)*(X(j,k)-xj));end
+		R(i,j)=R(i,j)/s;
+    end;end
+elseif(cs==4)%指数相似系数法
+	for(i=1:n)for(j=1:n)R(i,j)=0;
+		for(k=1:m)xk=0;
+			for(z=1:n)xk=xk+X(z,k);end
+			xk=xk/n;sk=0;
+			for(z=1:n)sk=sk+(X(z,k)-xk)^2;end
+			sk=sk/n;R(i,j)=R(i,j)+exp(-0.75*((X(i,k)-X(j,k))/sk)^2);
+        end
+		R(i,j)=R(i,j)/m;
+    end;end
+elseif(cs<=7)%最大最小法 算术平均最小法 几何平均最小法
+	for(i=1:n)for(j=1:n)fz=0;fm=0;
+		for(k=1:m)
+			if(X(j,k)<0)R=[];return;end
+			if(X(j,k)>X(i,k))x=X(i,k);
+			else x=X(j,k);end
+			fz=fz+x;
+        end
+		if(cs==5)%最大最小法
+			for(k=1:m)if(X(i,k)>X(j,k))x=X(i,k);else x=X(j,k);end
+			fm=fm+x;end
+		elseif(cs==6)for(k=1:m)fm=fm+(X(i,k)+X(j,k))/2;end%算术平均最小法
+		else for(k=1:m)fm=fm+sqrt(X(i,k)*X(j,k));end;end%几何平均最小法
+		R(i,j)=fz/fm;
+    end;end
+elseif(cs<=10)C=0;%一般距离法
+	for(i=1:n)for(j=i+1:n)d=0;
+		if(cs==8)for(k=1:m)d=d+(X(i,k)-X(j,k))^2;end
+			d=sqrt(d);%欧式距离
+		elseif(cs==9)for(k=1:m)d=d+abs(X(i,k)-X(j,k));end%海明距离
+		else for(k=1:m)if(d<abs(X(i,k)-X(j,k)))d=abs(X(i,k)-X(j,k));end;end;end%切比雪夫距离
+		if(C<d)C=d;end
+	end;end
+	C=1/(1+C);
+	for(i=1:n)for(j=1:n)d=0;
+		if(cs==8)for(k=1:m)d=d+(X(i,k)-X(j,k))^2;end
+			d=sqrt(d);%欧式距离
+		elseif(cs==9)for(k=1:m)d=d+abs(X(i,k)-X(j,k));end%海明距离
+		else for(k=1:m)if(d<abs(X(i,k)-X(j,k)))d=abs(X(i,k)-X(j,k));end;end;end%切比雪夫距离
+		R(i,j)=1-C*d;
+	end;end
+elseif(cs<=13)minM=Inf;%倒数距离法
+	for(i=1:n)for(j=i+1:n)d=0;
+		if(cs==11)for(k=1:m)d=d+(X(i,k)-X(j,k))^2;end
+			d=sqrt(d);%欧式距离
+		elseif(cs==12)for(k=1:m)d=d+abs(X(i,k)-X(j,k));end%海明距离
+		else for(k=1:m)if(d<abs(X(i,k)-X(j,k)))d=abs(X(i,k)-X(j,k));end;end;end%切比雪夫距离
+		if(minM>d)minM=d;end
+	end;end
+	minM=0.9999*minM;
+	if(minM<0.000001)return;end
+	for(i=1:n)for(j=1:n)d=0;
+		if(j==i)R(i,j)=1;continue;end
+		if(cs==11)for(k=1:m)d=d+(X(i,k)-X(j,k))^2;end
+			d=sqrt(d);%欧式距离
+		elseif(cs==12)for(k=1:m)d=d+abs(X(i,k)-X(j,k));end%海明距离
+		else for(k=1:m)if(d<abs(X(i,k)-X(j,k)))d=abs(X(i,k)-X(j,k));end;end;end%切比雪夫距离
+		R(i,j)=minM/d;
+	end;end
+else for(i=1:n)for(j=1:n)d=0;%指数距离法
+	if(cs==14)for(k=1:m)d=d+(X(i,k)-X(j,k))^2;end
+		d=sqrt(d);%欧式距离
+	elseif(cs==15)for(k=1:m)d=d+abs(X(i,k)-X(j,k));end%海明距离
+	else for(k=1:m)if(d<abs(X(i,k)-X(j,k)))d=abs(X(i,k)-X(j,k));end;end;end%切比雪夫距离
+	R(i,j)=exp(-d);
+end;end;end
+end
+%%
+function [A]=fuzzy_cdbb(R)  %由模糊相似矩阵求传递闭包
+js0=0;
+while(1)
+A=Max_Min(R,R);
+js0=js0+1;
+if(A==R)
+    break;
+else
+    R=A;
+end
+end
+end
+%%
+function[C]=Max_Min(A,B) %模糊矩阵的合成,先取小后取大
+C=[];
+[m,s1]=size(A);
+[s2,n]=size(B);
+if(s1~=s2)
+     disp('A的列不等于B的行');
+else
+for(i=1:m)
+    for(j=1:n)
+        C(i,j)=0;
+        for(k=1:s1)
+            x=0;
+            if(A(i,k)<B(k,j))
+                x=A(i,k);
+            else
+                x=B(k,j);
+            end
+            if(C(i,j)<x)
+                C(i,j)=x;
+            end
+        end
+    end
+end
+end
+end
+%%
+function[Alamd]=fuzzy_lamdjjz(A)          %求矩阵的lamd截矩阵并输出聚类结果
+[m,n]=size(A);
+p=m*n;%矩阵A中总的元素个数
+C=A(1:p);%把矩阵变成一个行向量
+D=sort(C);%把向量C中的元素从小到大排序
+for(i=1:p)
+    for(j=i+1:p)
+        if(D(i)==D(j))
+            D(j)=0;%把向量C中相同元素只保留一个其他的变为零
+        end
+    end
+end
+E=sort(D);%将D按从小到大进行排序
+x=0;
+for(i=1:p)
+    if(E(i)==0)
+        x=x+1;%统计E中零的个数
+    end
+end
+F=E(p:(-1):(x+1));%从E中挑出非零元素并按从大到小的顺序排列
+s=length(F);
+for(i=1:s)
+    disp('-------------------');
+    lamd=F(i)%顺次从F中从大到小取lamd
+    disp('所对应的截矩阵是');
+    Alamd=A>=F(i)%得到lamd截矩阵
+    [C]=fuzzy_jl(Alamd)%得到聚类结果
+end
+end
+%%
+function [C]=fuzzy_jl(A)%聚类结果
+B=[];
+[m1,n1]=size(A);
+for(i=1:m1)
+     x=0;
+    for(j=1:n1)
+        if(A(i,j)==1)%找到每一行的元素1
+            x=x+1;
+            B(i,x)=j;%把每一行找到的元素1的列下标顺次储存在矩阵的每一行中
+        end
+    end
+end
+B;
+[m2,n2]=size(B);
+for(i=1:m2)
+    for(j=2:n2)
+        if(B(i,j)~=0)
+            B(B(i,j),:)=0;%将相同行只保留一个其他变为零行
+        end
+    end
+end
+B;
+C=[];
+y=0;
+for(i=1:m2)
+    if(sum(B(i,:))~=0)%找到非零行
+        y=y+1;
+        C(y,:)=B(i,:);%用非零行构成矩阵C,得到聚类结果
+    end
+end
+end
+%%
+

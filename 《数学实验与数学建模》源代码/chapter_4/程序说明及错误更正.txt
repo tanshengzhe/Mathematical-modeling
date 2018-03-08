@@ -1,0 +1,14 @@
+第四章程序说明
+
+1.   Dijkstra.m及floydwarshall.m分别为书本P102页的dijkstra算法和Warshall-Ford算法的MATLAB程序。
+2.   Kruskal.m及tree_prim.m分别为P105页的最小生成树算法。
+3.   Welsh.m为P112页着色问题中的Welsh-Powell算法程序，并且sortd.m为其中调用的一个排序子函数。
+4.   Ford_Fulkerson.m为P116页最大流问题的的Ford_Fulkerson算法程序。
+5.  Exam_4_9.m为P119页例4.9程序。
+6.  Exam_4_10.m为P122页例4.10程序。
+7.  equ_mat.m为P125页矩阵覆盖法程序。
+
+错误更正
+P103 倒数第2行Floyd改为Ford
+P104第一行Warshall-Floyd改为Warshall-Ford，代码第一行floyd.m改为floydwarshall.m
+
