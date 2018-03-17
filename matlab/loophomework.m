@@ -15,5 +15,4 @@ for n=2:500
         as=[as,k];
     end
 end
-
 as
